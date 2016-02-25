@@ -1,14 +1,15 @@
-var process = require('../');
+'use strict';
+
+var ReadFromProcess = require('../').ReadFromProcess;
 var assert = require('assert');
 
-
-describe('windows process', function() {
-  it('should export a function that returns an array of running process names', function() {
-    var running = process.GetRunningProcesses();
-    assert.equal(Array.isArray(running), true);
-    
-    for (var i = 0; i < running.length; ++i) {
-        console.log(running[i]);
-    }
+describe('window-process', () => {
+  describe('ReadFromProcess', () => {
+    it('should find a process by name and invoke callback', done => {
+      ReadFromProcess("node.exe", () => {
+        done();
+        return true;
+      });
+    });
   });
 });
