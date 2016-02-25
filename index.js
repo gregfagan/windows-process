@@ -1,2 +1,2 @@
-var NativeExtension = require('bindings')('NativeExtension');
-module.exports = NativeExtension;
+var WindowsProcess = require('bindings')('windows-process');
+module.exports = WindowsProcess;

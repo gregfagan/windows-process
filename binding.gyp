@@ -1,11 +1,16 @@
 {
-    "targets": [
-        {
-            "target_name": "NativeExtension",
-            "sources": [ "NativeExtension.cc", "functions.cc" ],
-            "include_dirs" : [
- 	 			"<!(node -e \"require('nan')\")"
-			]
-        }
-    ],
+    'targets': [],
+    'conditions': [
+        ['OS == "win"', {
+            'targets': [
+                {
+                    "target_name": "windows-process",
+                    "include_dirs" : [
+                        "<!(node -e \"require('nan')\")"
+                    ],
+                    'sources': ["windows-process.cc"]
+                }
+            ]
+        }]
+    ]
 }

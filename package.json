@@ -1,9 +1,17 @@
 {
+  "name": "windows-process",
+  "version": "0.0.1",
   "main": "index.js",
+  "description": "Read the memory of other processes on Windows",
+  "license": "MIT",
+  "repository" : {
+     "type" : "git",
+     "url" : "https://github.com/gregfagan/windows-process.git"
+  },
   "scripts": {
     "configure": "node-gyp configure",
     "build": "node-gyp build",
-    "test": "mocha"
+    "test": "node ./node_modules/mocha/bin/mocha"
   },
   "devDependencies": {
     "nan": "^2.0.5",

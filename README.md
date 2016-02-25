@@ -1,10 +1,8 @@
-# Node Native Extension Boilerplate
+# Windows Process
 
-[![Build Status](https://travis-ci.org/fcanas/node-native-boilerplate.svg)](https://travis-ci.org/fcanas/node-native-boilerplate)
+A native node module for Windows that allows a node app to read the contents of another process' memory.
 
-A very approachable node native extension.
-
-This repository serves as a nearly minimal native extension built on [Nan](https://github.com/nodejs/nan) with enough tooling to also make it a great starting point for more complex projects.
+Note that utilizing this module requires the app to be running with administrator privileges.
 
 ## Building
 
@@ -26,15 +24,10 @@ After building:
 
 ```node
 $ node
-> var NativeExtension = require('./')
+> var process = require('./')
 undefined
-> NativeExtension.aString()
-'This is a thing.'
-> NativeExtension.aBoolean()
-false
-> NativeExtension.nothing()
-undefined
-> 
+> process.GetRunningProcesses()
+['[System Process]', 'System', 'smss.exe', ...]
 ```
 
 ### To run tests:
@@ -48,12 +41,3 @@ or to run test continuously
 ```
 $ npm test -- watch
 ```
-
-## The Parts
-
-File | Contents
--------------|----------------
-`NativeExtension.cc` | Represents the top level of the module. C++ constructs that are exposed to javascript are exported here
-`functions.cc` | Example top-level functions. These functions demonstrate how to build and return various js types.
-`index.js` | The main entry point for the node dependency
-`binding.gyp` | Describes your node native extention to the build system (`node-gyp`). As you add source files to the project, you should also add them to the binding file.

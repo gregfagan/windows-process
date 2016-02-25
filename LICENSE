@@ -1,4 +1,13 @@
-Copyright (c) 2015 Fabian Canas
+This project was forked from Node Native Extension Boilerplate
+    https://github.com/fcanas/node-native-boilerplate
+The portions of that work which remain in this one, primarily configuration
+and some text in README.md are Copyright (c) 2015 Fabian Canas
+
+Some portions of the code in window-process.cc were derived from d2dumpitems
+    http://www.blizzhackers.cc/viewtopic.php?f=182&t=499536&start=0
+and are Copyright (c) 2014 r57shell
+
+Remaining work, Copyright (c) 2016 Greg Fagan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
