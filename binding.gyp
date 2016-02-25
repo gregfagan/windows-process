@@ -8,7 +8,8 @@
                     "include_dirs" : [
                         "<!(node -e \"require('nan')\")"
                     ],
-                    'sources': ["windows-process.cc"]
+                    'sources': ["windows-process.cc"],
+                    'libraries': ["psapi.lib"],
                 }
             ]
         }]

@@ -12,13 +12,16 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <tlhelp32.h>
-// #include <psapi.h>
+#include <psapi.h>
+#include <cstdint>
+#include <string>
 
 #define SE_DEBUG_PRIVILEGE 20
 
 //  Exported Function Declarations:
 //
 NAN_METHOD(ReadFromProcess);
+NAN_METHOD(GetModuleBase);
 
 //  Internal Function Declarations:
 //
@@ -38,7 +41,6 @@ bool AdjustPrivilege();
 // callback() -> shouldHalt:boolean
 //
 NAN_METHOD(ReadFromProcess) {
-    // Check the number of arguments passed.
     if (info.Length() < 2) {
         Nan::ThrowError("Expects 2 arguments.");
         return;
@@ -83,7 +85,30 @@ NAN_METHOD(ReadFromProcess) {
     do
     {
         if (strncmp(pe32.szExeFile, szProcessName, MAX_PATH) == 0) {
-            auto halt = Nan::MakeCallback(Nan::GetCurrentContext()->Global(), callback, 0, 0);
+
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pe32.th32ProcessID);
+            if (!hProcess)
+            {
+                continue;
+            }
+            
+            // Build reader object
+            auto reader = Nan::New<v8::Object>();
+
+            auto key_GetModuleBase = Nan::New("GetModuleBase").ToLocalChecked();
+            auto value_GetModuleBase = Nan::GetFunction(Nan::New<v8::FunctionTemplate>(
+                GetModuleBase, 
+                Nan::New<v8::External>(hProcess)
+            )).ToLocalChecked();
+            Nan::Set(reader, key_GetModuleBase, value_GetModuleBase);
+            
+            v8::Local<v8::Value> argv[1] = { reader };
+            auto halt = Nan::MakeCallback(Nan::GetCurrentContext()->Global(), callback, 1, argv);
+            
+            Nan::Delete(reader, key_GetModuleBase);
+            
+            CloseHandle(hProcess);
+            
             if (halt->IsTrue()) {
                 break;
             }
@@ -91,6 +116,59 @@ NAN_METHOD(ReadFromProcess) {
         
     } while (Process32Next(snap, &pe32));
     CloseHandle(snap);
+}
+
+NAN_METHOD(GetModuleBase) {
+    if (info.Length() < 1 || !info[0]->IsString()) {
+        Nan::ThrowError("Must provide module name as an argument.");
+        return;
+    }
+    
+    Nan::Utf8String moduleName(info[0]);
+    auto hProcess = (HANDLE)info.Data().As<v8::External>()->Value();
+    
+    HMODULE *hModules;
+    TCHAR name[MAX_PATH];
+    DWORD sizeD;
+    if (EnumProcessModules(hProcess, 0, 0, &sizeD))
+    {
+        hModules = (HMODULE *)malloc(sizeD);
+        if (hModules)
+        {
+            if (EnumProcessModules(hProcess, hModules, sizeD, &sizeD))
+            {
+                size_t count = sizeD / sizeof(HMODULE);
+                for (int i = 0; i < count; i++)
+                {
+                    if (!GetModuleFileNameEx(hProcess, hModules[i], name, sizeof(name)))
+                    {
+                        // Can't get module filename, just skip it
+                        continue;
+                    }
+                    
+                    // Search the end of the enumerated process name for the argument.
+                    std::string str_name(name);
+                    if (str_name.rfind(*moduleName) != std::string::npos)
+                    {
+                        MODULEINFO modInfo;
+                        if (GetModuleInformation(hProcess, hModules[i], &modInfo, sizeof(modInfo)))
+                        {
+                            info.GetReturnValue().Set(Nan::New<v8::Number>(reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll)));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Nan::ThrowError("Can't enum modules");
+            }
+            free(hModules);
+        }
+        else
+        {
+            Nan::ThrowError("Can't callocate memory for modules");
+        }
+    }
 }
 
 // (internal) Adjusts this process to SE_DEBUG_PRIVILEGE necessary to read
