@@ -9,13 +9,13 @@ Note that utilizing this module requires the app to be running with administrato
 The module exports a single function:
 
 ```
-import { ReadFromProcess } from 'windows-process';
+import { WithProcess } from 'windows-process';
 ```
 
 Its signature:
 
 ```
-ReadFromProcess(name: string, callback: function) -> nothing
+WithProcess(name: string, callback: function) -> nothing
 ```
 
 `name` is the name of the running process you wish to inspect. For each process found with that name, `callback` is invoked. Its signature:
@@ -24,22 +24,31 @@ ReadFromProcess(name: string, callback: function) -> nothing
 callback(process: object) -> shouldHalt: boolean
 ```
 
-The `process` object provides access to the rest of the API. See below. If the return value is `true`, `ReadProcessMemory` halts after this first process matching the input name. Otherwise, it continues enumerating processes, and will invoke the callback for each one that matches.
+The `process` object provides access to the rest of the API. See below. If the return value is `true`, `WithProcess` halts after this first process matching the input name. Otherwise, it continues enumerating processes, and will invoke the callback for each one that matches. This two-step API encapsulates the process resource HANDLE, providing a guaranteed, scoped lifetime that won't leak.
 
 ## `process` API
 
 ```
-GetModuleBase(name: string) -> baseOffset: number
+getModuleBase(name: string) -> baseOffset: number
 ```
 
-Returns the base memory offset of a module in process memory.
+Returns the base memory offset of a module in process memory. This is useful if the memory address you wish to read from is a known offset into a module's memory space.
+
+```
+readMemory(address: number, countInBytes: number) -> buffer
+```
+
+Does what it says on the tin. Returns a node Buffer object.
 
 ## Example
 
 ```
-import { ReadFromProcess } from 'windows-process';
-ReadFromProcess("node.exe", process => {
-    console.log(process.GetModuleBase("ntdll.dll").toString(16)); // → 7fffb0d80000
+import { WithProcess } from 'windows-process';
+WithProcess("node.exe", process => {
+    const ntDllBase = process.getModuleBase("ntdll.dll");
+    const firstFourBytes = process.readMemory(ntDllBase, 4);
+    console.log(ntDllBase.toString(16)); // → 7fffb0d80000
+    console.log(firstFourBytes); // → <Buffer 4d 5a 90 00>
 });
 ```
 
