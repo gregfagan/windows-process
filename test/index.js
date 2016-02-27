@@ -5,6 +5,12 @@ var assert = require('assert');
 
 describe('window-process', () => {
   describe('WithProcess', () => {
+    it('should expect a string and a callback as arguments', () => {
+      assert.throws(() => { WithProcess(); }, /2 arguments/);
+      assert.throws(() => { WithProcess("node.exe"); }, /2 arguments/);
+      assert.throws(() => { WithProcess(0, () => {}); }, /process name/);
+      assert.throws(() => { WithProcess("node.exe", 0); }, /callback function/);
+    });
     it('should find a process by name and invoke callback', done => {
       WithProcess("node.exe", () => {
         done();

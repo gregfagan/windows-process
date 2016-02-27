@@ -64,7 +64,7 @@ NAN_METHOD(WithProcess) {
     }
     
     auto processName = Nan::To<v8::String>(info[0]);
-    if (processName.IsEmpty()) {
+    if (!info[0]->IsString() || processName.IsEmpty()) {
         Nan::ThrowError("Must supply a process name as the first argument.");
         return;
     }
