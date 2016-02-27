@@ -39,9 +39,17 @@ describe('window-process', () => {
       assert.equal(leakedProcess.readMemory, undefined);
     });
     describe('process.getModuleBase', () => {
-      it('should find a well-known module offset', done => {
+      it('should expect a string as an argument', () => {
         WithProcess('node.exe', process => {
-          assert(process.getModuleBase('ntdll.dll') > 0);
+          assert.throws(() => { process.getModuleBase(); }, /module name/);
+          assert.throws(() => { process.getModuleBase(0); }, /module name/);
+        })
+      })
+      it('should return the offset of a well-known module', done => {
+        WithProcess('node.exe', process => {
+          const base = process.getModuleBase('ntdll.dll');
+          assert(typeof base === 'number');
+          assert(base > 0);
           
           done();
           return true;
@@ -49,6 +57,14 @@ describe('window-process', () => {
       });
     });
     describe('process.readMemory', () => {
+      it('should expect two numbers as arguments', () => {
+        WithProcess('node.exe', process => {
+          assert.throws(() => { process.readMemory(); }, /2 arguments/);
+          assert.throws(() => { process.readMemory(0); }, /2 arguments/);
+          assert.throws(() => { process.readMemory("test", 0); }, /First.*number/);
+          assert.throws(() => { process.readMemory(0, "test"); }, /Second.*number/);
+        });
+      });
       it('should return a buffer', done => {
         WithProcess('node.exe', process => {
           const base = process.getModuleBase('ntdll.dll');
