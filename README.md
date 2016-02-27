@@ -72,10 +72,14 @@ After building:
 
 ```node
 $ node
-> var process = require('./')
+> var WithProcess = require('./').WithProcess;
 undefined
-> process.GetRunningProcesses()
-['[System Process]', 'System', 'smss.exe', ...]
+> WithProcess('node.exe', process => {
+... const base = process.getModuleBase("ntdll.dll");
+... console.log(base.toString(16));
+... });
+7ffd03b70000
+undefined
 ```
 
 ### To run tests:
